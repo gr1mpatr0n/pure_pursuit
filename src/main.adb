@@ -1,58 +1,80 @@
 -- Copyright (C) 2025 Benjamin Mordaunt
 
-with Ada.Text_IO; use Ada.Text_IO;
-with Ada.Numerics;
-with Pure_Pursuit;
+with Ada.Text_IO;              use Ada.Text_IO;
+with Ada.Command_Line;         use Ada.Command_Line;
+with Ada.Unchecked_Deallocation; 
+with Pure_Pursuit;             use Pure_Pursuit;
+with Output_Formatters;        use Output_Formatters;
 
 procedure Main is
-    use Pure_Pursuit;
+   -- Simulation State
+   Ctrl : Controller := (Path           => Point_Vectors.Empty_Vector,
+                         Current_Idx    => 1,
+                         Lookahead_Dist => 3.0);
+   
+   Robot : Pose := (P => (0.0, 0.0), Theta => 0.0);
+   
+   Steering_Angle : Real;
+   Has_Target     : Boolean;
+   
+   Velocity       : constant Real := 1.0; 
+   Dt             : constant Real := 0.1;
+   Current_Time   : Real := 0.0;
 
-    -- Initialize Controller
-    Ctrl : Controller := (Path           => Point_Vectors.Empty_Vector,
-                          Current_Idx    => 1,
-                          Lookahead_Dist => 3.0);
+   type Formatter_Access is access all Formatter'Class;
 
-    -- Robot State
-    Robot : Pose := (P => (0.0, 0.0), Theta => 0.0);
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Object => Formatter'Class, Name => Formatter_Access);
 
-    Steering_Angle : Real;
-    Has_Target     : Boolean;
-    Velocity       : constant Real := 1.0; -- m/s
-    Dt             : constant Real := 0.1; -- Time step
+   Log : Formatter_Access;
+
+   function Create_Formatter return Formatter_Access is
+   begin
+      if Argument_Count > 0 then
+         declare
+            Arg : constant String := Argument(1);
+         begin
+            if Arg = "JSON" or Arg = "json" or Arg = "--json" then
+               return new JSON_Reporter'(Is_First_Entry => True);
+            end if;
+         end;
+      end if;
+      
+      return new Human_Readable;
+   end Create_Formatter;
+
 begin
-    -- 1. Create a Path (A simple diagonal line for demo)
-    for I in 0 .. 20 loop
-        Add_Waypoint (Ctrl, Real(I) * 1.5, Real(I) * 1.0);
-    end loop;
+   -- Initialize logic
+   Log := Create_Formatter;
 
-    Put_Line ("Starting Pure Pursuit Simulation...");
-    Put_Line ("Format: [X, Y, Theta] -> Steering_Angle");
+   -- Setup Path
+   for I in 0 .. 20 loop
+      Add_Waypoint (Ctrl, Real(I) * 1.5, Real(I) * 1.0);
+   end loop;
 
-    -- 2. Simulation Loop
-    for Step in 1 .. 30 loop
+   -- Simulation Loop
+   Log.Start_Log;
 
-        -- Compute Control
-        Compute_Steering (Ctrl, Robot, Steering_Angle, Has_Target);
+   for Step in 1 .. 30 loop
+      Current_Time := Real(Step) * Dt;
+      
+      Compute_Steering (Ctrl, Robot, Steering_Angle, Has_Target);
 
-        if not Has_Target then
-            Put_Line ("End of path reached.");
-            exit;
-        end if;
+      if not Has_Target then
+         exit;
+      end if;
 
-        -- Output Status (Formatted manually for clarity)
-        Put ("Pos: [" & Real'Image(Robot.P.X) & ", " & Real'Image(Robot.P.Y) & "]");
-        Put (" Head: " & Real'Image(Robot.Theta));
-        Put_Line (" -> Steer: " & Real'Image(Steering_Angle));
+      -- Polymorphic Call
+      Log.Log_Step (Step, Current_Time, Robot, Steering_Angle);
 
-        -- 3. Update Robot Kinematics (Bicycle Model)
-        -- Update X, Y
-        Robot.P.X := @ + Velocity * Math.Cos(Robot.Theta) * Dt;
-        Robot.P.Y := @ + Velocity * Math.Sin(Robot.Theta) * Dt;
+      -- Update Physics
+      Robot.P.X   := @ + Velocity * Math.Cos(Robot.Theta) * Dt;
+      Robot.P.Y   := @ + Velocity * Math.Sin(Robot.Theta) * Dt;
+      Robot.Theta := @ + (Velocity / Wheelbase) * Math.Tan(Steering_Angle) * Dt;
 
-        -- Update Heading
-        -- Theta_new = Theta + (v / L) * tan(delta) * dt
-        Robot.Theta := @ + (Velocity / Wheelbase) * Math.Tan(Steering_Angle) * Dt;
+   end loop;
 
-    end loop;
+   Log.End_Log;
+   Free (Log);
 
 end Main;
