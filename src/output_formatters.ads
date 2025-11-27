@@ -1,11 +1,12 @@
 -- Copyright (C) 2025 Benjamin Mordaunt
 
+with Ada.Text_IO;  use Ada.Text_IO;
 with Pure_Pursuit; use Pure_Pursuit;
 
 package Output_Formatters is
 
    -- Abstract Interface
-   type Formatter is abstract tagged null record;
+   type Formatter is abstract tagged limited null record;
 
    procedure Start_Log (Self : in out Formatter) is abstract;
 
@@ -31,10 +32,10 @@ package Output_Formatters is
       Steering : Real);
    overriding procedure End_Log (Self : in out Human_Readable);
 
-
    -- 2. JSON Implementation
    type JSON_Reporter is new Formatter with record
       Is_First_Entry : Boolean := True;
+      JSON_File      : File_Type;
    end record;
 
    overriding procedure Start_Log (Self : in out JSON_Reporter);
@@ -46,4 +47,13 @@ package Output_Formatters is
       Steering : Real);
    overriding procedure End_Log (Self : in out JSON_Reporter);
 
+private
+   generic
+      type Value_Type is private;
+      with function Image (Item : Value_Type) return String is <>;
+   procedure Generic_Write_Pair
+      (Self : in out JSON_Reporter;
+       Key  : String;
+       Value : Value_Type;
+       Last  : Boolean := False);
 end Output_Formatters;

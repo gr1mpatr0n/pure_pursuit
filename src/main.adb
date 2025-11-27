@@ -1,6 +1,5 @@
 -- Copyright (C) 2025 Benjamin Mordaunt
 
-with Ada.Text_IO;              use Ada.Text_IO;
 with Ada.Command_Line;         use Ada.Command_Line;
 with Ada.Unchecked_Deallocation; 
 with Pure_Pursuit;             use Pure_Pursuit;
@@ -35,7 +34,7 @@ procedure Main is
             Arg : constant String := Argument(1);
          begin
             if Arg = "JSON" or Arg = "json" or Arg = "--json" then
-               return new JSON_Reporter'(Is_First_Entry => True);
+               return new JSON_Reporter'(Is_First_Entry => True, JSON_File => <>);
             end if;
          end;
       end if;
