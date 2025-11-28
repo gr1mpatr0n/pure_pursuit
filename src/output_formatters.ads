@@ -5,7 +5,7 @@ with Stream_Utils;
 
 package Output_Formatters is
     -- Abstract Interface
-    type Formatter is abstract tagged limited record
+    type Formatter is abstract tagged record
         Output_Handle : Stream_Utils.Mutable_File_Access;
     end record;
 

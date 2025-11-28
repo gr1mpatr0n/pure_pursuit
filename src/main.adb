@@ -23,9 +23,6 @@ procedure Main is
    Dt           : constant Real := 0.1;
    Current_Time : Real := 0.0;
 
-   type Formatter_Access is access Formatter'Class;
-
-   Log           : Formatter_Access;
    Log_Disk_File : aliased File_Type;
    Log_Target    : Stream_Utils.Mutable_File_Access;
 
@@ -47,7 +44,7 @@ procedure Main is
            Help     => "The name of a file to output, or @ for stdout.");
    end Arg;
 
-   function Create_Formatter return Formatter_Access is
+   function Create_Formatter return Formatter'Class is
       File_Name : Unbounded_String;
    begin
       if not Arg.Parser.Parse then
@@ -70,17 +67,14 @@ procedure Main is
 
       if Arg.JSON.Get then
          return
-           new JSON_Reporter'
-             (Is_First_Entry => True, Output_Handle => Log_Target);
+           JSON_Reporter'(Is_First_Entry => True, Output_Handle => Log_Target);
       end if;
 
-      return new Human_Readable'(Output_Handle => Log_Target);
+      return Human_Readable'(Output_Handle => Log_Target);
    end Create_Formatter;
 
+   Log : Formatter'Class := Create_Formatter;
 begin
-   -- Initialize logic
-   Log := Create_Formatter;
-
    -- Setup Path
    for I in 0 .. 20 loop
       Add_Waypoint (Ctrl, Real (I) * 1.5, Real (I) * 1.0);
