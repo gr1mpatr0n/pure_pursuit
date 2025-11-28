@@ -1,5 +1,4 @@
 with Ada.Text_IO; use Ada.Text_IO;
-with Ada.Unchecked_Conversion;
 
 package Stream_Utils is
    type Mutable_File_Access is access all File_Type;

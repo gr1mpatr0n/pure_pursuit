@@ -1,6 +1,6 @@
 -- Copyright (C) 2025 Benjamin Mordaunt
 
-with "gnatcoll";
+with "gnatcoll_core";
 
 project Pure_Pursuit is
 

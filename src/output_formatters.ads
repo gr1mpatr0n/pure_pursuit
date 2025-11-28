@@ -1,6 +1,5 @@
 -- Copyright (C) 2025 Benjamin Mordaunt
 
-with Ada.Text_IO;  use Ada.Text_IO;
 with Pure_Pursuit; use Pure_Pursuit;
 with Stream_Utils;
 
