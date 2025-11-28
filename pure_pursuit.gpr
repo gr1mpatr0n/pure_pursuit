@@ -1,5 +1,7 @@
 -- Copyright (C) 2025 Benjamin Mordaunt
 
+with "gnatcoll";
+
 project Pure_Pursuit is
 
 -- Define source and object directories
@@ -18,7 +20,7 @@ package Compiler is
 end Compiler;
 
 package Builder is
-    for Executable ("main.adb") use "pure_pursuit_demo";
+    for Executable ("main.adb") use "pure_pursuit";
 end Builder;
 
 end Pure_Pursuit;

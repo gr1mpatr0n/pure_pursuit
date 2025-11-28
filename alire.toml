@@ -1,0 +1,13 @@
+name = "pure_pursuit"
+description = "Implementation of the Pure Pursuit algorithm."
+version = "0.1.0-dev"
+
+authors = ["Benjamin Mordaunt"]
+maintainers = ["Benjamin Mordaunt <benjamin@branchware.co.uk>"]
+maintainers-logins = ["gr1mpatr0n"]
+licenses = "MIT OR Apache-2.0 WITH LLVM-exception"
+website = ""
+tags = []
+
+[[depends-on]]
+gnatcoll = "^25.0.0"

@@ -2,58 +2,65 @@
 
 with Ada.Text_IO;  use Ada.Text_IO;
 with Pure_Pursuit; use Pure_Pursuit;
+with Stream_Utils;
 
 package Output_Formatters is
+    -- Abstract Interface
+    type Formatter is abstract tagged limited record
+        Output_Handle : Stream_Utils.Mutable_File_Access;
+    end record;
 
-   -- Abstract Interface
-   type Formatter is abstract tagged limited null record;
+    procedure Start_Log (Self : in out Formatter) is abstract;
 
-   procedure Start_Log (Self : in out Formatter) is abstract;
+    procedure Log_Step
+       (Self     : in out Formatter;
+        Step     : Integer;
+        Time     : Real;
+        Robot    : Pose;
+        Steering : Real)
+    is abstract;
 
-   procedure Log_Step 
-     (Self     : in out Formatter; 
-      Step     : Integer; 
-      Time     : Real; 
-      Robot    : Pose; 
-      Steering : Real) is abstract;
+    procedure End_Log (Self : in out Formatter) is abstract;
 
-   procedure End_Log (Self : in out Formatter) is abstract;
+    -- 1. Human Readable Implementation (Original Style)
+    type Human_Readable is new Formatter with null record;
 
+    overriding
+    procedure Start_Log (Self : in out Human_Readable);
+    overriding
+    procedure Log_Step
+       (Self     : in out Human_Readable;
+        Step     : Integer;
+        Time     : Real;
+        Robot    : Pose;
+        Steering : Real);
+    overriding
+    procedure End_Log (Self : in out Human_Readable);
 
-   -- 1. Human Readable Implementation (Original Style)
-   type Human_Readable is new Formatter with null record;
+    -- 2. JSON Implementation
+    type JSON_Reporter is new Formatter with record
+        Is_First_Entry : Boolean := True;
+    end record;
 
-   overriding procedure Start_Log (Self : in out Human_Readable);
-   overriding procedure Log_Step 
-     (Self     : in out Human_Readable; 
-      Step     : Integer; 
-      Time     : Real; 
-      Robot    : Pose; 
-      Steering : Real);
-   overriding procedure End_Log (Self : in out Human_Readable);
-
-   -- 2. JSON Implementation
-   type JSON_Reporter is new Formatter with record
-      Is_First_Entry : Boolean := True;
-      JSON_File      : File_Type;
-   end record;
-
-   overriding procedure Start_Log (Self : in out JSON_Reporter);
-   overriding procedure Log_Step 
-     (Self     : in out JSON_Reporter; 
-      Step     : Integer; 
-      Time     : Real; 
-      Robot    : Pose; 
-      Steering : Real);
-   overriding procedure End_Log (Self : in out JSON_Reporter);
+    overriding
+    procedure Start_Log (Self : in out JSON_Reporter);
+    overriding
+    procedure Log_Step
+       (Self     : in out JSON_Reporter;
+        Step     : Integer;
+        Time     : Real;
+        Robot    : Pose;
+        Steering : Real);
+    overriding
+    procedure End_Log (Self : in out JSON_Reporter);
 
 private
-   generic
-      type Value_Type is private;
-      with function Image (Item : Value_Type) return String is <>;
-   procedure Generic_Write_Pair
-      (Self : in out JSON_Reporter;
-       Key  : String;
-       Value : Value_Type;
-       Last  : Boolean := False);
+    generic
+        type Value_Type is private;
+        with function Image (Item : Value_Type) return String is <>;
+    procedure Generic_Write_Pair
+       (Self  : in out JSON_Reporter;
+        Key   : String;
+        Value : Value_Type;
+        Last  : Boolean := False);
 end Output_Formatters;
