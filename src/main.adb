@@ -6,7 +6,6 @@ with Output_Formatters;     use Output_Formatters;
 with GNATCOLL.Opt_Parse;    use GNATCOLL.Opt_Parse;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Stream_Utils;
-with System.Pool_Local;
 
 procedure Main is
    -- Simulation State
@@ -24,9 +23,7 @@ procedure Main is
    Dt           : constant Real := 0.1;
    Current_Time : Real := 0.0;
 
-   Local_Pool : System.Pool_Local.Unbounded_Reclaim_Pool;
-   type Formatter_Access is access all Formatter'Class
-   with Storage_Pool => Local_Pool;
+   type Formatter_Access is access Formatter'Class;
 
    Log           : Formatter_Access;
    Log_Disk_File : aliased File_Type;
