@@ -1,12 +1,12 @@
 -- Copyright (C) 2025 Benjamin Mordaunt
 
 with Pure_Pursuit; use Pure_Pursuit;
-with Stream_Utils;
+with Ada.Text_IO.Text_Streams;
 
 package Output_Formatters is
     -- Abstract Interface
     type Formatter is abstract tagged record
-        Output_Handle : Stream_Utils.Mutable_File_Access;
+        Output_Handle : Ada.Text_IO.Text_Streams.Stream_Access;
     end record;
 
     procedure Start_Log (Self : in out Formatter) is abstract;

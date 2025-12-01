@@ -9,11 +9,10 @@ package body Output_Formatters is
     -----------------------
     procedure Start_Log (Self : in out Human_Readable) is
     begin
-        Put_Line
-           (Self.Output_Handle.all, "Starting Pure Pursuit Simulation...");
-        Put_Line
-           (Self.Output_Handle.all, "Format: [X, Y, Theta] -> Steering_Angle");
-        New_Line (Self.Output_Handle.all);
+        String'Write
+           (Self.Output_Handle, "Starting Pure Pursuit Simulation..." & ASCII.LF);
+        String'Write
+           (Self.Output_Handle, "Format: [X, Y, Theta] -> Steering_Angle" & ASCII.LF & ASCII.LF);
     end Start_Log;
 
     procedure Log_Step
@@ -23,28 +22,28 @@ package body Output_Formatters is
         Robot    : Pose;
         Steering : Real) is
     begin
-        Put
-           (Self.Output_Handle.all,
+        String'Write
+           (Self.Output_Handle,
             "Step"
             & Integer'Image (Step)
             & " (t="
             & Real'Image (Time)
             & "): ");
-        Put
-           (Self.Output_Handle.all,
+        String'Write
+           (Self.Output_Handle,
             "Pos ["
             & Real'Image (Robot.P.X)
             & ", "
             & Real'Image (Robot.P.Y)
             & "]");
-        Put (Self.Output_Handle.all, " Head " & Real'Image (Robot.Theta));
-        Put_Line
-           (Self.Output_Handle.all, " -> Steer " & Real'Image (Steering));
+        String'Write (Self.Output_Handle, " Head " & Real'Image (Robot.Theta));
+        String'Write
+           (Self.Output_Handle, " -> Steer " & Real'Image (Steering) & ASCII.LF);
     end Log_Step;
 
     procedure End_Log (Self : in out Human_Readable) is
     begin
-        Put_Line (Self.Output_Handle.all, "End of path reached.");
+        String'Write (Self.Output_Handle, "End of path reached." & ASCII.LF);
     end End_Log;
 
     -----------------------
@@ -56,9 +55,9 @@ package body Output_Formatters is
         Value : Value_Type;
         Last  : Boolean := False) is
     begin
-        Put (Self.Output_Handle.all, """" & Key & """: " & Image (Value));
+        String'Write (Self.Output_Handle, """" & Key & """: " & Image (Value));
         if not Last then
-            Put (Self.Output_Handle.all, ", ");
+            String'Write (Self.Output_Handle, ", ");
         end if;
     end Generic_Write_Pair;
 
@@ -74,22 +73,22 @@ package body Output_Formatters is
         Item : Pose;
         Last : Boolean := False) is
     begin
-        Put (Self.Output_Handle.all, """" & Key & """: {");
+        String'Write (Self.Output_Handle, """" & Key & """: {");
 
         Write_Pair (Self, "x", Item.P.X);
         Write_Pair (Self, "y", Item.P.Y);
         Write_Pair (Self, "theta", Item.Theta, Last => True);
 
-        Put (Self.Output_Handle.all, "}");
+        String'Write (Self.Output_Handle, "}");
 
         if not Last then
-            Put (Self.Output_Handle.all, ", ");
+            String'Write (Self.Output_Handle, ", ");
         end if;
     end Write_Pair;
 
     procedure Start_Log (Self : in out JSON_Reporter) is
     begin
-        Put_Line (Self.Output_Handle.all, "[");
+        String'Write (Self.Output_Handle, "[" & ASCII.LF);
         Self.Is_First_Entry := True;
     end Start_Log;
 
@@ -101,25 +100,24 @@ package body Output_Formatters is
         Steering : Real) is
     begin
         if not Self.Is_First_Entry then
-            Put_Line (Self.Output_Handle.all, ",");
+            String'Write (Self.Output_Handle, "," & ASCII.LF);
         end if;
         Self.Is_First_Entry := False;
 
         -- Manual JSON construction
-        Put (Self.Output_Handle.all, "  {");
+        String'Write (Self.Output_Handle, "  {");
 
         Write_Pair (Self, "step", Step);
         Write_Pair (Self, "time", Time);
         Write_Pair (Self, "pose", Robot);
         Write_Pair (Self, "steering", Steering, Last => True);
 
-        Put (Self.Output_Handle.all, "}");
+        String'Write (Self.Output_Handle, "}");
     end Log_Step;
 
     procedure End_Log (Self : in out JSON_Reporter) is
     begin
-        New_Line (Self.Output_Handle.all);
-        Put_Line (Self.Output_Handle.all, "]");
+        String'Write (Self.Output_Handle, ASCII.LF & "]" & ASCII.LF);
     end End_Log;
 
 end Output_Formatters;
